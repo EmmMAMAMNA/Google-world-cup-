@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Cup 2026 Sweepstake - OX Tools Cloud Sync</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        :root {
+            --bg-main: #060a12;
+            --panel-bg: #0c1222;
+            --field-bg: #04070d;
+            --ox-cyan: #00AEEF;
+            --ox-glow: #00E5FF;
+            --text-light: #FFFFFF;
+            --text-dark: #627490;
+            --accent-border: #1a263f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-main);
+            background-image: linear-gradient(rgba(0, 174, 239, 0.02) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(0, 174, 239, 0.02) 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--text-light);
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1vh 1vw;
+        }
+
+        header {
+            text-align: center;
+            height: 6vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .ox-brand-badge {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            padding: 2px 12px;
+            font-weight: 900;
+            font-style: italic;
+            font-size: 1.1rem;
+            border: 2px solid var(--ox-cyan);
+            box-shadow: 0 0 10px var(--ox-cyan);
+            letter-spacing: -0.5px;
+            line-height: 1;
+        }
+
+        .ox-brand-badge span { color: var(--ox-cyan); }
+        .main-title { font-size: 1.2rem; font-weight: 900; text-transform: uppercase; margin-top: 2px; line-height: 1; }
+
+        .dashboard-wrapper {
+            display: grid;
+            grid-template-columns: 245px 1fr 245px;
+            gap: 8px;
+            height: 87vh;
+            align-items: center;
+        }
+
+        .side-groups-container {
+            display: grid;
+            grid-template-rows: repeat(6, 1fr);
+            gap: 3px;
+            height: 100%;
+        }
+
+        .group-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--accent-border);
+            border-radius: 4px;
+            padding: 2px 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1.5px solid var(--ox-cyan);
+            padding-bottom: 1px;
+            margin-bottom: 1px;
+        }
+
+        .group-name { font-size: 0.75rem; font-weight: 900; color: var(--ox-cyan); }
+        .matrix-labels { display: flex; gap: 3px; font-size: 0.5rem; color: var(--text-dark); font-weight: bold; }
+        .matrix-labels span { width: 14px; text-align: center; }
+
+        .team-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1px 0;
+            font-size: 0.6rem;
+        }
+
+        .team-identity {
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 135px;
+        }
+
+        .stat-inputs { display: flex; gap: 3px; }
+        .stat-inputs span {
+            width: 14px;
+            height: 13px;
+            background-color: var(--field-bg);
+            border: 1px solid var(--accent-border);
+            color: var(--text-light);
+            text-align: center;
+            font-size: 0.5rem;
+            font-weight: bold;
+            border-radius: 1px;
+            display: inline-block;
+            line-height: 13px;
+        }
+
+        .bracket-center-canvas {
+            display: grid;
+            grid-template-columns: 110px 110px 1fr 110px 110px;
+            gap: 6px;
+            height: 100%;
+            align-items: center;
+        }
+
+        .bracket-tier-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 98%;
+        }
+
+        .match-block {
+            background-color: var(--field-bg);
+            border: 1px solid var(--accent-border);
+            border-left: 2px solid var(--ox-cyan);
+            border-radius: 2px;
+            padding: 2px 4px;
+            width: 100%;
+        }
+
+        .match-header-info { color: var(--ox-cyan); font-size: 0.5rem; font-weight: bold; text-transform: uppercase; margin-bottom: 1px; }
+        
+        .competitor-slot {
+            background-color: rgba(26, 38, 63, 0.4);
+            height: 14px;
+            margin-bottom: 1px;
+            padding: 0 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.55rem;
+            color: #fff;
+            border-radius: 1px;
+        }
+
+        .competitor-slot:last-child { margin-bottom: 0; }
+        .score-box { color: var(--ox-glow); font-weight: bold; font-size: 0.5rem; }
+
+        .finals-apex-hub { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; height: 100%; }
+        .apex-trophy { font-size: 2rem; filter: drop-shadow(0 0 8px var(--ox-glow)); line-height: 1; }
+
+        .championship-showcase-box {
+            width: 145px;
+            border: 1.5px solid var(--ox-cyan);
+            box-shadow: 0 0 10px rgba(0, 174, 239, 0.3);
+            background-color: var(--panel-bg);
+            border-radius: 4px;
+            padding: 5px;
+            text-align: center;
+        }
+
+        .championship-showcase-box .match-header-info { font-size: 0.65rem; margin-bottom: 2px; }
+        .championship-showcase-box .competitor-slot { height: 18px; font-weight: bold; font-size: 0.6rem;}
+
+        footer {
+            height: 3vh;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--accent-border);
+            padding: 0 15px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.55rem;
+            color: var(--text-dark);
+        }
+        footer h4 { color: var(--ox-cyan); display: inline; margin-right: 5px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="ox-brand-badge">OX <span>TOOLS</span></div>
+        <h1 class="main-title">World Cup 2026 Sweepstake</h1>
+    </header>
+
+    <div class="dashboard-wrapper">
+        
+        <div class="side-groups-container">
+            <div class="group-card">
+                <div class="group-header"><div class="group-name">Group A</div><div class="matrix-labels"><span>P</span><span>W</span><span>D</span><span>L</span><span>PTS</span></div></div>
+                <div class="team-row"><div class="team-identity">🇲🇽 Mexico</div><div class="stat-inputs"><span id="t_mex_p">-</span><span id="t_mex_w">-</span><span id="t_mex_d">-</span><span id="t_mex_l">-</span><span id="t_mex_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇿🇦 South Africa</div><div class="stat-inputs"><span id="t_rsa_p">-</span><span id="t_rsa_w">-</span><span id="t_rsa_d">-</span><span id="t_rsa_l">-</span><span id="t_rsa_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇰🇷 South Korea</div><div class="stat-inputs"><span id="t_kor_p">-</span><span id="t_kor_w">-</span><span id="t_kor_d">-</span><span id="t_kor_l">-</span><span id="t_kor_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇨🇿 Czechia</div><div class="stat-inputs"><span id="t_cze_p">-</span><span id="t_cze_w">-</span><span id="t_cze_d">-</span><span id="t_cze_l">-</span><span id="t_cze_pts">-</span></div></div>
+            </div>
+            <div class="group-card">
+                <div class="group-header"><div class="group-name">Group B</div><div class="matrix-labels"><span>P</span><span>W</span><span>D</span><span>L</span><span>PTS</span></div></div>
+                <div class="team-row"><div class="team-identity">🇨🇦 Canada</div><div class="stat-inputs"><span id="t_can_p">-</span><span id="t_can_w">-</span><span id="t_can_d">-</span><span id="t_can_l">-</span><span id="t_can_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇧🇦 Bosnia & H.</div><div class="stat-inputs"><span id="t_bih_p">-</span><span id="t_bih_w">-</span><span id="t_bih_d">-</span><span id="t_bih_l">-</span><span id="t_bih_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇶🇦 Qatar</div><div class="stat-inputs"><span id="t_qat_p">-</span><span id="t_qat_w">-</span><span id="t_qat_d">-</span><span id="t_qat_l">-</span><span id="t_qat_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇨🇭 Switzerland</div><div class="stat-inputs"><span id="t_sui_p">-</span><span id="t_sui_w">-</span><span id="t_sui_d">-</span><span id="t_sui_l">-</span><span id="t_sui_pts">-</span></div></div>
+            </div>
+            <div class="group-card">
+                <div class="group-header"><div class="group-name">Group C</div><div class="matrix-labels"><span>P</span><span>W</span><span>D</span><span>L</span><span>PTS</span></div></div>
+                <div class="team-row"><div class="team-identity">🇧🇷 Brazil</div><div class="stat-inputs"><span id="t_bra_p">-</span><span id="t_bra_w">-</span><span id="t_bra_d">-</span><span id="t_bra_l">-</span><span id="t_bra_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇲🇦 Morocco</div><div class="stat-inputs"><span id="t_mar_p">-</span><span id="t_mar_w">-</span><span id="t_mar_d">-</span><span id="t_mar_l">-</span><span id="t_mar_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇲🇭 Haiti</div><div class="stat-inputs"><span id="t_hai_p">-</span><span id="t_hai_w">-</span><span id="t_hai_d">-</span><span id="t_hai_l">-</span><span id="t_hai_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland</div><div class="stat-inputs"><span id="t_sco_p">-</span><span id="t_sco_w">-</span><span id="t_sco_d">-</span><span id="t_sco_l">-</span><span id="t_sco_pts">-</span></div></div>
+            </div>
+            <div class="group-card">
+                <div class="group-header"><div class="group-name">Group D</div><div class="matrix-labels"><span>P</span><span>W</span><span>D</span><span>L</span><span>PTS</span></div></div>
+                <div class="team-row"><div class="team-identity">🇺🇸 USA</div><div class="stat-inputs"><span id="t_usa_p">-</span><span id="t_usa_w">-</span><span id="t_usa_d">-</span><span id="t_usa_l">-</span><span id="t_usa_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇵🇾 Paraguay</div><div class="stat-inputs"><span id="t_par_p">-</span><span id="t_par_w">-</span><span id="t_par_d">-</span><span id="t_par_l">-</span><span id="t_par_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇦🇺 Australia</div><div class="stat-inputs"><span id="t_aus_p">-</span><span id="t_aus_w">-</span><span id="t_aus_d">-</span><span id="t_aus_l">-</span><span id="t_aus_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇹🇷 Türkiye</div><div class="stat-inputs"><span id="t_tur_p">-</span><span id="t_tur_w">-</span><span id="t_tur_d">-</span><span id="t_tur_l">-</span><span id="t_tur_pts">-</span></div></div>
+            </div>
+            <div class="group-card">
+                <div class="group-header"><div class="group-name">Group E</div><div class="matrix-labels"><span>P</span><span>W</span><span>D</span><span>L</span><span>PTS</span></div></div>
+                <div class="team-row"><div class="team-identity">🇩🇪 Germany</div><div class="stat-inputs"><span id="t_ger_p">-</span><span id="t_ger_w">-</span><span id="t_ger_d">-</span><span id="t_ger_l">-</span><span id="t_ger_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇨🇼 Curaçao</div><div class="stat-inputs"><span id="t_cuw_p">-</span><span id="t_cuw_w">-</span><span id="t_cuw_d">-</span><span id="t_cuw_l">-</span><span id="t_cuw_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇨🇮 Côte d'Ivoire</div><div class="stat-inputs"><span id="t_civ_p">-</span><span id="t_civ_w">-</span><span id="t_civ_d">-</span><span id="t_civ_l">-</span><span id="t_civ_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇪🇨 Ecuador</div><div class="stat-inputs"><span id="t_ecu_p">-</span><span id="t_ecu_w">-</span><span id="t_ecu_d">-</span><span id="t_ecu_l">-</span><span id="t_ecu_pts">-</span></div></div>
+            </div>
+            <div class="group-card">
+                <div class="group-header"><div class="group-name">Group F</div><div class="matrix-labels"><span>P</span><span>W</span><span>D</span><span>L</span><span>PTS</span></div></div>
+                <div class="team-row"><div class="team-identity">🇳🇱 Netherlands</div><div class="stat-inputs"><span id="t_ned_p">-</span><span id="t_ned_w">-</span><span id="t_ned_d">-</span><span id="t_ned_l">-</span><span id="t_ned_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇯🇵 Japan</div><div class="stat-inputs"><span id="t_jpn_p">-</span><span id="t_jpn_w">-</span><span id="t_jpn_d">-</span><span id="t_jpn_l">-</span><span id="t_jpn_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇸🇪 Sweden</div><div class="stat-inputs"><span id="t_swe_p">-</span><span id="t_swe_w">-</span><span id="t_swe_d">-</span><span id="t_swe_l">-</span><span id="t_swe_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇹🇳 Tunisia</div><div class="stat-inputs"><span id="t_tun_p">-</span><span id="t_tun_w">-</span><span id="t_tun_d">-</span><span id="t_tun_l">-</span><span id="t_tun_pts">-</span></div></div>
+            </div>
+        </div>
+
+        <div class="bracket-center-canvas">
+            
+            <div class="bracket-tier-column">
+                <div class="match-block" id="M73"><div class="match-header-info">M73</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M74"><div class="match-header-info">M74</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M75"><div class="match-header-info">M75</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M76"><div class="match-header-info">M76</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M77"><div class="match-header-info">M77</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M78"><div class="match-header-info">M78</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M79"><div class="match-header-info">M79</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M80"><div class="match-header-info">M80</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+            </div>
+
+            <div class="bracket-tier-column">
+                <div class="match-block" id="M89"><div class="match-header-info">M89</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M90"><div class="match-header-info">M90</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M91"><div class="match-header-info">M91</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M92"><div class="match-header-info">M92</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+            </div>
+
+            <div class="finals-apex-hub">
+                <div class="apex-trophy">🏆</div>
+                <div class="championship-showcase-box" id="M104">
+                    <div class="match-header-info">GRAND FINAL</div>
+                    <div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div>
+                    <div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div>
+                </div>
+            </div>
+
+            <div class="bracket-tier-column">
+                <div class="match-block" id="M93"><div class="match-header-info">M93</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M94"><div class="match-header-info">M94</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M95"><div class="match-header-info">M95</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M96"><div class="match-header-info">M96</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+            </div>
+
+            <div class="bracket-tier-column">
+                <div class="match-block" id="M81"><div class="match-header-info">M81</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M82"><div class="match-header-info">M82</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M83"><div class="match-header-info">M83</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M84"><div class="match-header-info">M84</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M85"><div class="match-header-info">M85</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M86"><div class="match-header-info">M86</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M87"><div class="match-header-info">M87</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+                <div class="match-block" id="M88"><div class="match-header-info">M88</div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div><div class="competitor-slot"><span class="team-name">--</span><span class="score-box">-</span></div></div>
+            </div>
+
+        </div>
+
+        <div class="side-groups-container">
+            <div class="group-card">
+                <div class="group-header"><div class="group-name">Group G</div><div class="matrix-labels"><span>P</span><span>W</span><span>D</span><span>L</span><span>PTS</span></div></div>
+                <div class="team-row"><div class="team-identity">🇧🇪 Belgium</div><div class="stat-inputs"><span id="t_bel_p">-</span><span id="t_bel_w">-</span><span id="t_bel_d">-</span><span id="t_bel_l">-</span><span id="t_bel_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇪🇬 Egypt</div><div class="stat-inputs"><span id="t_egy_p">-</span><span id="t_egy_w">-</span><span id="t_egy_d">-</span><span id="t_egy_l">-</span><span id="t_egy_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇮🇷 IR Iran</div><div class="stat-inputs"><span id="t_irn_p">-</span><span id="t_irn_w">-</span><span id="t_irn_d">-</span><span id="t_irn_l">-</span><span id="t_irn_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇳🇿 New Zealand</div><div class="stat-inputs"><span id="t_nzl_p">-</span><span id="t_nzl_w">-</span><span id="t_nzl_d">-</span><span id="t_nzl_l">-</span><span id="t_nzl_pts">-</span></div></div>
+            </div>
+            <div class="group-card">
+                <div class="group-header"><div class="group-name">Group H</div><div class="matrix-labels"><span>P</span><span>W</span><span>D</span><span>L</span><span>PTS</span></div></div>
+                <div class="team-row"><div class="team-identity">🇪🇸 Spain</div><div class="stat-inputs"><span id="t_esp_p">-</span><span id="t_esp_w">-</span><span id="t_esp_d">-</span><span id="t_esp_l">-</span><span id="t_esp_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇨🇻 Cabo Verde</div><div class="stat-inputs"><span id="t_cpv_p">-</span><span id="t_cpv_w">-</span><span id="t_cpv_d">-</span><span id="t_cpv_l">-</span><span id="t_cpv_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇸🇦 Saudi Arabia</div><div class="stat-inputs"><span id="t_sau_p">-</span><span id="t_sau_w">-</span><span id="t_sau_d">-</span><span id="t_sau_l">-</span><span id="t_sau_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇺🇾 Uruguay</div><div class="stat-inputs"><span id="t_uru_p">-</span><span id="t_uru_w">-</span><span id="t_uru_d">-</span><span id="t_uru_l">-</span><span id="t_uru_pts">-</span></div></div>
+            </div>
+            <div class="group-card">
+                <div class="group-header"><div class="group-name">Group I</div><div class="matrix-labels"><span>P</span><span>W</span><span>D</span><span>L</span><span>PTS</span></div></div>
+                <div class="team-row"><div class="team-identity">🇫🇷 France</div><div class="stat-inputs"><span id="t_fra_p">-</span><span id="t_fra_w">-</span><span id="t_fra_d">-</span><span id="t_fra_l">-</span><span id="t_fra_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇸🇳 Senegal</div><div class="stat-inputs"><span id="t_sen_p">-</span><span id="t_sen_w">-</span><span id="t_sen_d">-</span><span id="t_sen_l">-</span><span id="t_sen_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇮🇶 Iraq</div><div class="stat-inputs"><span id="t_irq_p">-</span><span id="t_irq_w">-</span><span id="t_irq_d">-</span><span id="t_irq_l">-</span><span id="t_irq_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇳🇴 Norway</div><div class="stat-inputs"><span id="t_nor_p">-</span><span id="t_nor_w">-</span><span id="t_nor_d">-</span><span id="t_nor_l">-</span><span id="t_nor_pts">-</span></div></div>
+            </div>
+            <div class="group-card">
+                <div class="group-header"><div class="group-name">Group J</div><div class="matrix-labels"><span>P</span><span>W</span><span>D</span><span>L</span><span>PTS</span></div></div>
+                <div class="team-row"><div class="team-identity">🇦🇷 Argentina</div><div class="stat-inputs"><span id="t_arg_p">-</span><span id="t_arg_w">-</span><span id="t_arg_d">-</span><span id="t_arg_l">-</span><span id="t_arg_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇩🇿 Algeria</div><div class="stat-inputs"><span id="t_alg_p">-</span><span id="t_alg_w">-</span><span id="t_alg_d">-</span><span id="t_alg_l">-</span><span id="t_alg_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇦🇹 Austria</div><div class="stat-inputs"><span id="t_aut_p">-</span><span id="t_aut_w">-</span><span id="t_aut_d">-</span><span id="t_aut_l">-</span><span id="t_aut_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇯🇴 Jordan</div><div class="stat-inputs"><span id="t_jor_p">-</span><span id="t_jor_w">-</span><span id="t_jor_d">-</span><span id="t_jor_l">-</span><span id="t_jor_pts">-</span></div></div>
+            </div>
+            <div class="group-card">
+                <div class="group-header"><div class="group-name">Group K</div><div class="matrix-labels"><span>P</span><span>W</span><span>D</span><span>L</span><span>PTS</span></div></div>
+                <div class="team-row"><div class="team-identity">🇵🇹 Portugal</div><div class="stat-inputs"><span id="t_por_p">-</span><span id="t_por_w">-</span><span id="t_por_d">-</span><span id="t_por_l">-</span><span id="t_por_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇨🇩 Congo DR</div><div class="stat-inputs"><span id="t_cod_p">-</span><span id="t_cod_w">-</span><span id="t_cod_d">-</span><span id="t_cod_l">-</span><span id="t_cod_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇺🇿 Uzbekistan</div><div class="stat-inputs"><span id="t_uzb_p">-</span><span id="t_uzb_w">-</span><span id="t_uzb_d">-</span><span id="t_uzb_l">-</span><span id="t_uzb_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇨🇴 Colombia</div><div class="stat-inputs"><span id="t_col_p">-</span><span id="t_col_w">-</span><span id="t_col_d">-</span><span id="t_col_l">-</span><span id="t_col_pts">-</span></div></div>
+            </div>
+            <div class="group-card">
+                <div class="group-header"><div class="group-name">Group L</div><div class="matrix-labels"><span>P</span><span>W</span><span>D</span><span>L</span><span>PTS</span></div></div>
+                <div class="team-row"><div class="team-identity">🏴󠁧󠁢󠁥󠁮󠁧󠁿 England</div><div class="stat-inputs"><span id="t_eng_p">-</span><span id="t_eng_w">-</span><span id="t_eng_d">-</span><span id="t_eng_l">-</span><span id="t_eng_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇭🇷 Croatia</div><div class="stat-inputs"><span id="t_cro_p">-</span><span id="t_cro_w">-</span><span id="t_cro_d">-</span><span id="t_cro_l">-</span><span id="t_cro_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇬🇭 Ghana</div><div class="stat-inputs"><span id="t_gha_p">-</span><span id="t_gha_w">-</span><span id="t_gha_d">-</span><span id="t_gha_l">-</span><span id="t_gha_pts">-</span></div></div>
+                <div class="team-row"><div class="team-identity">🇵🇦 Panama</div><div class="stat-inputs"><span id="t_pan_p">-</span><span id="t_pan_w">-</span><span id="t_pan_d">-</span><span id="t_pan_l">-</span><span id="t_pan_pts">-</span></div></div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <div><h4>OX CLOUD LINK:</h4> Google Sheet Sync Calibrated</div>
+        <div><h4>AUTO REFRESH:</h4> Active (60s)</div>
+    </footer>
+
+    <script>
+        // Your live cloud spreadsheet published link
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTym3uLLkCgSb43Yv9zkBR_5f1LrAGJhoC3-DHFiKiMqvcsjfmvM1_xX7SXd4eR1d3A3-ZtS9Bk6929/pub?output=csv';
+
+        function updateCloudDashboard() {
+            Papa.parse(CSV_URL, {
+                download: true,
+                header: false,
+                complete: function(results) {
+                    const data = results.data;
+                    
+                    data.forEach(row => {
+                        const targetId = row[0]; 
+                        if (!targetId) return;
+
+                        // 1. Process Bracket Matches (M73 to M104)
+                        const matchElement = document.getElementById(targetId);
+                        if (matchElement && targetId.startsWith('M')) {
+                            const slots = matchElement.querySelectorAll('.competitor-slot');
+                            if(slots.length >= 2) {
+                                slots[0].querySelector('.team-name').innerText = row[1] || '--';
+                                slots[0].querySelector('.score-box').innerText = row[2] || '';
+                                slots[1].querySelector('.team-name').innerText = row[3] || '--';
+                                slots[1].querySelector('.score-box').innerText = row[4] || '';
+                            }
+                        }
+
+                        // 2. Process Group Standings Values (t_...)
+                        const standingElement = document.getElementById(targetId);
+                        if (standingElement && targetId.startsWith('t_')) {
+                            standingElement.innerText = row[1] || '0';
+                        }
+                    });
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', updateCloudDashboard);
+        setInterval(updateCloudDashboard, 60000); // Check for sheet changes every 60 seconds
+    </script>
+</body>
+</html>
